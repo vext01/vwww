@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-import os, sys
+import os, sys, shutil
 from markdown import markdownFromFile
 
 IN_DIR = "in"
@@ -41,10 +41,20 @@ def process_mds(mds, h_str, f_str, indir, outdir):
         print("processing {0}".format(i))
         process_md(i, h_str, f_str, indir, outdir)
 
+def copy_resources(indir, outdir):
+    resin = os.path.join(indir, "res")
+    resout = os.path.join(outdir, "res")
+
+    if os.path.exists(resin):
+        shutil.copytree(resin, resout)
+
 if __name__ == "__main__":
     mds = get_file_list(IN_DIR)
-    if not mds:
-        print_err("no markdown to process")
+
+    if not mds: print_err("no markdown to process")
+    if os.path.exists(OUT_DIR): print_err("output dir already exists")
 
     (h_str, f_str) = read_template(IN_DIR)
     process_mds(mds, h_str, f_str, IN_DIR, OUT_DIR)
+
+    copy_resources(IN_DIR, OUT_DIR)
