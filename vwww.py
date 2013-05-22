@@ -3,9 +3,6 @@
 import os, sys, shutil
 from markdown import markdownFromFile
 
-IN_DIR = "in"
-OUT_DIR = "out"
-
 def print_err(s):
     sys.stderr.write("error: {0}\n".format(s))
     sys.exit(1)
@@ -31,7 +28,7 @@ def process_md(md, h_str, f_str, indir, outdir):
 
     with open(outfilename, "w") as f:
         f.write(h_str)
-        markdownFromFile(input=infilename, output=f)
+        markdownFromFile(output_format="xhtml1",input=infilename, output=f)
         f.write(f_str)
 
 def process_mds(mds, h_str, f_str, indir, outdir):
@@ -42,19 +39,24 @@ def process_mds(mds, h_str, f_str, indir, outdir):
         process_md(i, h_str, f_str, indir, outdir)
 
 def copy_resources(indir, outdir):
+    print("copying resources...")
     resin = os.path.join(indir, "res")
     resout = os.path.join(outdir, "res")
-
-    if os.path.exists(resin):
-        shutil.copytree(resin, resout)
+    if os.path.exists(resin): shutil.copytree(resin, resout)
 
 if __name__ == "__main__":
-    mds = get_file_list(IN_DIR)
+
+    if len(sys.argv) != 3: print_err("usage: vwww indir outdir")
+
+    indir = sys.argv[1]
+    outdir = sys.argv[2]
+
+    mds = get_file_list(indir)
 
     if not mds: print_err("no markdown to process")
-    if os.path.exists(OUT_DIR): print_err("output dir already exists")
+    if os.path.exists(outdir): print_err("output dir already exists")
 
-    (h_str, f_str) = read_template(IN_DIR)
-    process_mds(mds, h_str, f_str, IN_DIR, OUT_DIR)
+    (h_str, f_str) = read_template(indir)
+    process_mds(mds, h_str, f_str, indir, outdir)
 
-    copy_resources(IN_DIR, OUT_DIR)
+    copy_resources(indir, outdir)
