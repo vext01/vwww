@@ -1,6 +1,7 @@
 #!/usr/bin/env python2.7
 
 import os, sys
+from markdown import markdownFromFile
 
 IN_DIR = "in"
 OUT_DIR = "out"
@@ -26,9 +27,11 @@ def read_template(dirn):
 
 def process_md(md, h_str, f_str, indir, outdir):
     outfilename = os.path.join(outdir, md[0:-3] + ".html")
+    infilename = os.path.join(indir, md)
 
     with open(outfilename, "w") as f:
         f.write(h_str)
+        markdownFromFile(input=infilename, output=f)
         f.write(f_str)
 
 def process_mds(mds, h_str, f_str, indir, outdir):
