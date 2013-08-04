@@ -1,7 +1,7 @@
 #!/usr/bin/env python2.7
 
-import os, sys, shutil
-from markdown import markdownFromFile
+import os, sys, shutil, time
+from markdown import markdown
 
 def print_err(s):
     sys.stderr.write("error: {0}\n".format(s))
@@ -13,12 +13,16 @@ def get_file_list(dirn):
 
     return [ x for x in os.listdir(dirn) if x.endswith(".md") ]
 
+def subs_macros(in_str):
+    # May want to make this more modular if many more macros are added. (use fold?)
+    return in_str.replace("$$date$$", time.asctime())
+
 def read_template(dirn):
     hpath = os.path.join(dirn, "header.html")
     fpath = os.path.join(dirn, "footer.html")
 
-    with open(hpath, "r") as h_hndl: h_str = h_hndl.read()
-    with open(fpath, "r") as f_hndl: f_str = f_hndl.read()
+    with open(hpath, "r") as h_hndl: h_str = subs_macros(h_hndl.read())
+    with open(fpath, "r") as f_hndl: f_str = subs_macros(f_hndl.read())
 
     return (h_str, f_str)
 
@@ -26,10 +30,11 @@ def process_md(md, h_str, f_str, indir, outdir):
     outfilename = os.path.join(outdir, md[0:-3] + ".html")
     infilename = os.path.join(indir, md)
 
-    with open(outfilename, "w") as f:
-        f.write(h_str)
-        markdownFromFile(output_format="xhtml1",input=infilename, output=f)
-        f.write(f_str)
+    with open(outfilename, "w") as out_hndl:
+        out_hndl.write(h_str)
+        with open(infilename, "r") as in_hndl: md_src = subs_macros(in_hndl.read())
+        out_hndl.write(markdown(md_src, output_format="xhtml1"))
+        out_hndl.write(f_str)
 
 def process_mds(mds, h_str, f_str, indir, outdir):
     if not os.path.exists(outdir): os.mkdir(outdir)
