@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 
-import os, sys, shutil, time
+import os, sys, shutil, time, re
 from markdown import markdown
 
 def print_err(s):
@@ -14,20 +14,26 @@ def get_file_list(dirn):
     return [ x for x in os.listdir(dirn) if x.endswith(".md") ]
 
 # Macros
-def macro_date(*args):
+def macro_date():
     return time.asctime()
+
+def macro_include(filename):
+    with open(filename, "r") as f:
+        return f.read()
 
 # macro-name -> (function, n_args)
 MACRO_TABLE = {
         "date" : (macro_date, 0),
+        "include" : (macro_include, 1)
         }
 
 def subs_macros(in_str):
     out_lines = []
-    for line in in_str.splitlines(True):
-        if line.startswith("%%"):
-
-            elems = line[2:].strip().split(" ")
+    for line in in_str.splitlines(False):
+        match = re.match("(.*)%%(.*)%%(.*)", line)
+        if match:
+            print(match.groups()[1])
+            elems = match.groups()[1].strip().split(":")
             try:
                 (func, nargs) = MACRO_TABLE[elems[0]]
             except KeyError:
@@ -37,7 +43,8 @@ def subs_macros(in_str):
                 print_err("wrong number of args for '%s' macro. "
                 "expect %d got %d" % (elems[0], nargs, len(elems) - 1))
 
-            out_lines.extend(func(elems[1:]).splitlines(True))
+            replaced = "%s%s%s" % (match.groups()[0], func(*elems[1:]), match.groups()[2])
+            out_lines.extend(replaced.splitlines(False))
         else:
             out_lines.append(line)
 
