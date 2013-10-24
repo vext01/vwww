@@ -13,9 +13,35 @@ def get_file_list(dirn):
 
     return [ x for x in os.listdir(dirn) if x.endswith(".md") ]
 
+# Macros
+def macro_date(*args):
+    return time.asctime()
+
+# macro-name -> (function, n_args)
+MACRO_TABLE = {
+        "date" : (macro_date, 0),
+        }
+
 def subs_macros(in_str):
-    # May want to make this more modular if many more macros are added. (use fold?)
-    return in_str.replace("$$date$$", time.asctime())
+    out_lines = []
+    for line in in_str.splitlines(True):
+        if line.startswith("%%"):
+
+            elems = line[2:].strip().split(" ")
+            try:
+                (func, nargs) = MACRO_TABLE[elems[0]]
+            except KeyError:
+                print_err("unknown macro '%s'" % elems[0])
+
+            if len(elems) - 1 != nargs:
+                print_err("wrong number of args for '%s' macro. "
+                "expect %d got %d" % (elems[0], nargs, len(elems) - 1))
+
+            out_lines.extend(func(elems[1:]).splitlines(True))
+        else:
+            out_lines.append(line)
+
+    return "\n".join(out_lines)
 
 def read_template(dirn):
     hpath = os.path.join(dirn, "header.html")
