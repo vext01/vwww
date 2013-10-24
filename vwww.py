@@ -29,7 +29,7 @@ MACRO_TABLE = {
 
 def subs_macros(in_str):
     out_lines = []
-    for line in in_str.splitlines(False):
+    for line in in_str.splitlines():
         match = re.match("(.*)%%(.*)%%(.*)", line)
         if match:
             print(match.groups()[1])
@@ -44,7 +44,7 @@ def subs_macros(in_str):
                 "expect %d got %d" % (elems[0], nargs, len(elems) - 1))
 
             replaced = "%s%s%s" % (match.groups()[0], func(*elems[1:]), match.groups()[2])
-            out_lines.extend(replaced.splitlines(False))
+            out_lines.extend(replaced.splitlines())
         else:
             out_lines.append(line)
 
